@@ -1,12 +1,15 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import ToastNotification from '@/components/ToastNotification.vue'
 
 const pastImages = ref([])
 const isLoading = ref(false)
 const selectedImages = ref([])
 const showSelectionError = ref(false)
 const errorMessage = ref('')
-const printSuccess = ref(false)
+const showToast = ref(false)
+const toastMessage = ref('')
+const toastType = ref('success')
 
 // 計算還需要選擇多少張照片
 const remainingSelections = computed(() => {
@@ -49,6 +52,30 @@ async function fetchPastImages() {
           name: 'sample4.jpg',
           url: 'https://picsum.photos/id/240/500/500',
           date: '2023/10/18',
+        },
+        {
+          id: '5',
+          name: 'sample5.jpg',
+          url: 'https://picsum.photos/id/241/500/500',
+          date: '2023/10/19',
+        },
+        {
+          id: '6',
+          name: 'sample6.jpg',
+          url: 'https://picsum.photos/id/242/500/500',
+          date: '2023/10/20',
+        },
+        {
+          id: '7',
+          name: 'sample7.jpg',
+          url: 'https://picsum.photos/id/243/500/500',
+          date: '2023/10/21',
+        },
+        {
+          id: '8',
+          name: 'sample8.jpg',
+          url: 'https://picsum.photos/id/244/500/500',
+          date: '2023/10/22',
         },
       ]
     }
@@ -96,10 +123,14 @@ function printSelectedImages() {
 
   console.log('列印照片：', selectedImages.value)
 
-  printSuccess.value = true
-  setTimeout(() => {
-    printSuccess.value = false
-  }, 3000)
+  // 顯示 Toast 成功通知
+  toastMessage.value = '照片已送至拍貼機列印！'
+  toastType.value = 'success'
+  showToast.value = true
+}
+
+function closeToast() {
+  showToast.value = false
 }
 
 onMounted(() => {
@@ -111,10 +142,7 @@ onMounted(() => {
   <div class="gallery-view-container">
     <h1>拍貼機選照</h1>
 
-    <div
-      class="selection-guide"
-      v-if="!printSuccess && !showSelectionError && pastImages.length > 0"
-    >
+    <div class="selection-guide" v-if="!showSelectionError && pastImages.length > 0">
       <div class="guide-icon" :class="{ complete: canPrint }">
         <svg
           v-if="!canPrint"
@@ -174,24 +202,6 @@ onMounted(() => {
         <line x1="12" y1="16" x2="12.01" y2="16"></line>
       </svg>
       {{ errorMessage }}
-    </div>
-
-    <div v-if="printSuccess" class="success-message">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-      </svg>
-      照片已送至拍貼機列印！
     </div>
 
     <div class="gallery-container">
@@ -285,6 +295,15 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- Toast 通知 -->
+    <ToastNotification
+      :message="toastMessage"
+      :type="toastType"
+      :visible="showToast"
+      :duration="3000"
+      @close="closeToast"
+    />
   </div>
 </template>
 

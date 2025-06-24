@@ -1,10 +1,14 @@
 <script setup>
 import { ref, computed } from 'vue'
+import ToastNotification from '@/components/ToastNotification.vue'
 
 const files = ref([])
 const isDragging = ref(false)
 const uploadStatus = ref('idle') // 'idle', 'uploading', 'success', 'error'
 const errorMessage = ref('')
+const showToast = ref(false)
+const toastMessage = ref('')
+const toastType = ref('success')
 
 const previews = computed(() => {
   return files.value.map((file) => ({
@@ -61,16 +65,27 @@ async function uploadFiles() {
     // Here you would normally save the files to your backend
     // and then update the gallery with the new images
 
-    uploadStatus.value = 'success'
+    // 切換到 Toast 通知而不是內嵌成功狀態
+    uploadStatus.value = 'idle'
+    toastMessage.value = '圖片上傳成功！'
+    toastType.value = 'success'
+    showToast.value = true
+
     // Clear files after successful upload
     setTimeout(() => {
       files.value = []
-      uploadStatus.value = 'idle'
-    }, 2000)
+    }, 500)
   } catch (error) {
     uploadStatus.value = 'error'
     errorMessage.value = error.message || '上傳失敗'
+    toastMessage.value = error.message || '上傳失敗'
+    toastType.value = 'error'
+    showToast.value = true
   }
+}
+
+function closeToast() {
+  showToast.value = false
 }
 </script>
 
@@ -163,6 +178,15 @@ async function uploadFiles() {
         <span v-else-if="uploadStatus === 'error'">{{ errorMessage }}</span>
       </button>
     </div>
+
+    <!-- Toast 通知 -->
+    <ToastNotification
+      :message="toastMessage"
+      :type="toastType"
+      :visible="showToast"
+      :duration="3000"
+      @close="closeToast"
+    />
   </div>
 </template>
 
