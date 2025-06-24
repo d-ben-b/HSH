@@ -57,8 +57,11 @@ async function uploadFiles() {
   try {
     // Simulated upload - replace with actual upload logic
     await new Promise((resolve) => setTimeout(resolve, 1500))
-    uploadStatus.value = 'success'
 
+    // Here you would normally save the files to your backend
+    // and then update the gallery with the new images
+
+    uploadStatus.value = 'success'
     // Clear files after successful upload
     setTimeout(() => {
       files.value = []
@@ -66,14 +69,14 @@ async function uploadFiles() {
     }, 2000)
   } catch (error) {
     uploadStatus.value = 'error'
-    errorMessage.value = error.message || 'Upload failed'
+    errorMessage.value = error.message || '上傳失敗'
   }
 }
 </script>
 
 <template>
   <div class="home-container">
-    <h1>Upload Images</h1>
+    <h1>上傳圖片</h1>
 
     <div
       class="upload-area"
@@ -100,9 +103,7 @@ async function uploadFiles() {
             <line x1="12" y1="3" x2="12" y2="15"></line>
           </svg>
         </div>
-        <p>
-          Drag images here or <label for="file-input" class="browse-link">browse</label> to upload
-        </p>
+        <p>拖拽圖片到此處或 <label for="file-input" class="browse-link">瀏覽</label> 上傳</p>
         <input
           type="file"
           id="file-input"
@@ -137,7 +138,7 @@ async function uploadFiles() {
             <line x1="12" y1="8" x2="12" y2="16"></line>
             <line x1="8" y1="12" x2="16" y2="12"></line>
           </svg>
-          Add More
+          添加更多
         </label>
       </div>
     </div>
@@ -149,16 +150,16 @@ async function uploadFiles() {
         class="upload-button"
         :class="uploadStatus"
       >
-        <span v-if="uploadStatus === 'idle'"
-          >Upload {{ files.length }} {{ files.length > 1 ? 'Images' : 'Image' }}</span
-        >
+        <span v-if="uploadStatus === 'idle'">
+          上傳 {{ files.length }} {{ files.length > 1 ? '張圖片' : '張圖片' }}
+        </span>
         <span v-else-if="uploadStatus === 'uploading'">
           <svg class="spinner" viewBox="0 0 50 50">
             <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
           </svg>
-          Uploading...
+          上傳中...
         </span>
-        <span v-else-if="uploadStatus === 'success'">Upload Successful!</span>
+        <span v-else-if="uploadStatus === 'success'">上傳成功！</span>
         <span v-else-if="uploadStatus === 'error'">{{ errorMessage }}</span>
       </button>
     </div>
@@ -170,9 +171,34 @@ async function uploadFiles() {
   max-width: 1000px;
   margin: 0 auto;
   padding: 2rem;
-  background-color: #fafafa;
+  background-color: white;
   border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 30px rgba(14, 58, 69, 0.12);
+  position: relative;
+}
+
+.home-container::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-yellow);
+  box-shadow: 0 0 8px 4px rgba(249, 216, 108, 0.6);
+}
+
+.home-container::after {
+  content: '';
+  position: absolute;
+  bottom: 20px;
+  left: 25px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--color-yellow);
+  box-shadow: 0 0 6px 3px rgba(249, 216, 108, 0.5);
 }
 
 h1 {
@@ -180,7 +206,7 @@ h1 {
   font-weight: 700;
   margin-bottom: 2rem;
   text-align: center;
-  background: linear-gradient(135deg, #4a8eff, #8063e1);
+  background: linear-gradient(135deg, var(--color-teal), var(--color-deep-teal));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -188,12 +214,12 @@ h1 {
 }
 
 p {
-  color: #555;
+  color: var(--color-text);
   font-size: 1.1rem;
 }
 
 .upload-area {
-  border: 2px dashed #d0d0d0;
+  border: 2px dashed var(--color-light-teal);
   border-radius: 20px;
   padding: 3rem;
   text-align: center;
@@ -206,16 +232,16 @@ p {
 }
 
 .upload-area.dragging {
-  background-color: #f0f7ff;
-  border-color: #4a8eff;
+  background-color: rgba(31, 78, 95, 0.05);
+  border-color: var(--color-teal);
   transform: scale(1.02);
-  box-shadow: 0 12px 40px rgba(74, 142, 255, 0.15);
+  box-shadow: 0 12px 40px rgba(14, 58, 69, 0.15);
 }
 
 .upload-area.has-files {
   background-color: #fff;
   border-style: solid;
-  border-color: #e8e8e8;
+  border-color: var(--color-light-teal);
 }
 
 .upload-prompt {
@@ -226,18 +252,18 @@ p {
 }
 
 .upload-icon {
-  color: #8e8e8e;
+  color: var(--color-light-text);
   margin-bottom: 1.2rem;
   transition: all 0.4s ease;
 }
 
 .upload-area:hover .upload-icon {
-  color: #4a8eff;
+  color: var(--color-teal);
   transform: translateY(-8px) scale(1.1);
 }
 
 .browse-link {
-  color: #4a8eff;
+  color: var(--color-orange);
   text-decoration: underline;
   cursor: pointer;
   font-weight: 500;
@@ -245,7 +271,7 @@ p {
 }
 
 .browse-link:hover {
-  color: #3a7eef;
+  color: var(--color-deep-teal);
   text-decoration: none;
 }
 
@@ -328,19 +354,19 @@ p {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 2px dashed #e0e0e0;
+  border: 2px dashed var(--color-light-teal);
   border-radius: 12px;
   height: 160px;
   cursor: pointer;
-  color: #555;
+  color: var(--color-light-text);
   transition: all 0.3s ease;
   font-weight: 500;
 }
 
 .add-more:hover {
-  border-color: #4a8eff;
-  color: #4a8eff;
-  background-color: #f5f9ff;
+  border-color: var(--color-teal);
+  color: var(--color-teal);
+  background-color: rgba(31, 78, 95, 0.05);
   transform: translateY(-2px);
 }
 
@@ -360,7 +386,7 @@ p {
 }
 
 .upload-button {
-  background: linear-gradient(135deg, #4a8eff, #6a72e4);
+  background: linear-gradient(135deg, var(--color-teal), var(--color-deep-teal));
   color: white;
   border: none;
   border-radius: 30px;
@@ -373,18 +399,18 @@ p {
   align-items: center;
   justify-content: center;
   min-width: 220px;
-  box-shadow: 0 6px 15px rgba(74, 142, 255, 0.25);
+  box-shadow: 0 6px 15px rgba(14, 58, 69, 0.25);
 }
 
 .upload-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #3a7eef, #5a62d4);
+  background: linear-gradient(135deg, var(--color-orange), #eb9470);
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(74, 142, 255, 0.35);
+  box-shadow: 0 8px 25px rgba(225, 123, 79, 0.35);
 }
 
 .upload-button:active:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(74, 142, 255, 0.3);
+  box-shadow: 0 4px 10px rgba(14, 58, 69, 0.3);
 }
 
 .upload-button:disabled {
@@ -394,17 +420,17 @@ p {
 }
 
 .upload-button.uploading {
-  background: linear-gradient(135deg, #4a8eff, #6a72e4);
+  background: linear-gradient(135deg, var(--color-teal), var(--color-deep-teal));
 }
 
 .upload-button.success {
-  background: linear-gradient(135deg, #32c682, #4caf50);
-  box-shadow: 0 6px 15px rgba(76, 175, 80, 0.25);
+  background: linear-gradient(135deg, #32a682, #40b48f);
+  box-shadow: 0 6px 15px rgba(50, 166, 130, 0.25);
 }
 
 .upload-button.error {
-  background: linear-gradient(135deg, #ff4757, #ff6b81);
-  box-shadow: 0 6px 15px rgba(255, 71, 87, 0.25);
+  background: linear-gradient(135deg, var(--color-orange), #f35e3e);
+  box-shadow: 0 6px 15px rgba(243, 94, 62, 0.25);
 }
 
 .spinner {
