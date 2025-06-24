@@ -20,7 +20,7 @@ function logout() {
     <div class="nav-links">
       <button @click="navigateTo('/')" class="nav-button">首頁</button>
       <button @click="navigateTo('/gallery')" class="nav-button">圖庫</button>
-      <button @click="logout()" class="nav-button logout">退出登錄</button>
+      <button @click="logout()" class="nav-button logout">登出</button>
     </div>
   </nav>
 </template>

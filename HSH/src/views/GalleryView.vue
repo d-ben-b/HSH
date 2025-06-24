@@ -55,7 +55,7 @@ onMounted(() => {
 
 <template>
   <div class="gallery-view-container">
-    <h1>我的圖庫</h1>
+    <h1>拍貼機選照</h1>
 
     <div class="gallery-container">
       <div v-if="isLoading" class="loading-indicator">
