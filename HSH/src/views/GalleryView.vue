@@ -1,18 +1,29 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 const pastImages = ref([])
 const isLoading = ref(false)
+const selectedImages = ref([])
+const showSelectionError = ref(false)
+const errorMessage = ref('')
+const printSuccess = ref(false)
+
+// 計算還需要選擇多少張照片
+const remainingSelections = computed(() => {
+  return 4 - selectedImages.value.length
+})
+
+// 檢查是否可以列印（是否已選擇 4 張照片）
+const canPrint = computed(() => {
+  return selectedImages.value.length === 4
+})
 
 async function fetchPastImages() {
-  // In a real app, this would be an API call to fetch previously uploaded images
   isLoading.value = true
 
   try {
-    // Simulating API delay
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    // If there are no simulated past images and the array is empty, add some demo images
     if (pastImages.value.length === 0) {
       pastImages.value = [
         {
@@ -48,6 +59,49 @@ async function fetchPastImages() {
   }
 }
 
+function toggleImageSelection(image) {
+  const index = selectedImages.value.findIndex((img) => img.id === image.id)
+
+  if (index !== -1) {
+    selectedImages.value.splice(index, 1)
+    showSelectionError.value = false
+    return
+  }
+
+  if (selectedImages.value.length >= 4) {
+    errorMessage.value = '最多只能選擇 4 張照片！'
+    showSelectionError.value = true
+    setTimeout(() => {
+      showSelectionError.value = false
+    }, 3000)
+    return
+  }
+
+  selectedImages.value.push(image)
+}
+
+function isImageSelected(image) {
+  return selectedImages.value.some((img) => img.id === image.id)
+}
+
+function printSelectedImages() {
+  if (selectedImages.value.length !== 4) {
+    errorMessage.value = '請選擇剛好 4 張照片！'
+    showSelectionError.value = true
+    setTimeout(() => {
+      showSelectionError.value = false
+    }, 3000)
+    return
+  }
+
+  console.log('列印照片：', selectedImages.value)
+
+  printSuccess.value = true
+  setTimeout(() => {
+    printSuccess.value = false
+  }, 3000)
+}
+
 onMounted(() => {
   fetchPastImages()
 })
@@ -56,6 +110,89 @@ onMounted(() => {
 <template>
   <div class="gallery-view-container">
     <h1>拍貼機選照</h1>
+
+    <div
+      class="selection-guide"
+      v-if="!printSuccess && !showSelectionError && pastImages.length > 0"
+    >
+      <div class="guide-icon" :class="{ complete: canPrint }">
+        <svg
+          v-if="!canPrint"
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="16"></line>
+          <line x1="8" y1="12" x2="16" y2="12"></line>
+        </svg>
+        <svg
+          v-else
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <div class="guide-text">
+        {{
+          remainingSelections > 0
+            ? `請再選擇 ${remainingSelections} 張照片`
+            : '已選擇 4 張照片，可以列印了！'
+        }}
+      </div>
+    </div>
+
+    <div v-if="showSelectionError" class="error-message">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      {{ errorMessage }}
+    </div>
+
+    <div v-if="printSuccess" class="success-message">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      照片已送至拍貼機列印！
+    </div>
 
     <div class="gallery-container">
       <div v-if="isLoading" class="loading-indicator">
@@ -85,13 +222,66 @@ onMounted(() => {
         <button @click="$router.push('/')" class="upload-now-btn">立即上傳圖片</button>
       </div>
 
-      <div v-else class="gallery-grid">
-        <div v-for="image in pastImages" :key="image.id" class="gallery-item">
-          <div class="gallery-image" :style="{ backgroundImage: `url(${image.url})` }"></div>
-          <div class="gallery-details">
-            <div class="gallery-name">{{ image.name }}</div>
-            <div class="gallery-date">{{ image.date }}</div>
+      <div v-else>
+        <div class="gallery-grid">
+          <div
+            v-for="image in pastImages"
+            :key="image.id"
+            class="gallery-item"
+            :class="{ selected: isImageSelected(image) }"
+            @click="toggleImageSelection(image)"
+          >
+            <div class="gallery-image" :style="{ backgroundImage: `url(${image.url})` }">
+              <div class="selection-indicator" v-if="isImageSelected(image)">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="9 11 12 14 22 4"></polyline>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="gallery-details">
+              <div class="gallery-name">{{ image.name }}</div>
+              <div class="gallery-date">{{ image.date }}</div>
+            </div>
           </div>
+        </div>
+
+        <div class="print-controls">
+          <button
+            @click="printSelectedImages"
+            class="print-button"
+            :class="{ enabled: canPrint }"
+            :disabled="!canPrint"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="6 9 6 2 18 2 18 9"></polyline>
+              <path
+                d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+              ></path>
+              <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+            拍貼機列印
+          </button>
         </div>
       </div>
     </div>
@@ -168,6 +358,8 @@ h1 {
     transform 0.3s ease,
     box-shadow 0.3s ease;
   border: 1px solid rgba(95, 138, 149, 0.1);
+  cursor: pointer;
+  position: relative;
 }
 
 .gallery-item:hover {
@@ -175,29 +367,129 @@ h1 {
   box-shadow: 0 8px 20px rgba(14, 58, 69, 0.15);
 }
 
+.gallery-item.selected {
+  border: 3px solid var(--color-orange);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(225, 123, 79, 0.25);
+}
+
 .gallery-image {
   height: 180px;
   background-size: cover;
   background-position: center;
   border-bottom: 1px solid #f0f0f0;
+  position: relative;
 }
 
-.gallery-details {
-  padding: 12px;
-  background-color: white;
+.selection-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--color-orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 2px 8px rgba(225, 123, 79, 0.6);
 }
 
-.gallery-name {
+.selection-guide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  padding: 0.8rem;
+  border-radius: 12px;
+  background-color: rgba(30, 78, 95, 0.05);
+}
+
+.guide-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-light-teal);
+  color: white;
+  margin-right: 12px;
+}
+
+.guide-icon.complete {
+  background: var(--color-orange);
+}
+
+.guide-text {
+  color: var(--color-teal);
   font-weight: 500;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.gallery-date {
-  font-size: 0.8rem;
-  color: #888;
+.print-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+
+.print-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #aaa, #888);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 14px 36px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  transition: all 0.3s ease;
+  min-width: 220px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.print-button svg {
+  margin-right: 10px;
+}
+
+.print-button.enabled {
+  background: linear-gradient(135deg, var(--color-teal), var(--color-deep-teal));
+  cursor: pointer;
+  box-shadow: 0 6px 15px rgba(14, 58, 69, 0.25);
+}
+
+.print-button.enabled:hover {
+  background: linear-gradient(135deg, var(--color-orange), #eb9470);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(225, 123, 79, 0.35);
+}
+
+.error-message,
+.success-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.error-message {
+  background-color: rgba(243, 94, 62, 0.1);
+  color: #f35e3e;
+}
+
+.success-message {
+  background-color: rgba(50, 166, 130, 0.1);
+  color: #32a682;
+}
+
+.error-message svg,
+.success-message svg {
+  margin-right: 8px;
 }
 
 .empty-gallery {
