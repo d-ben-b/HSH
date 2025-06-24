@@ -129,6 +129,24 @@ function printSelectedImages() {
   showToast.value = true
 }
 
+function shareSelectedImages() {
+  if (selectedImages.value.length !== 4) {
+    errorMessage.value = '請選擇剛好 4 張照片！'
+    showSelectionError.value = true
+    setTimeout(() => {
+      showSelectionError.value = false
+    }, 3000)
+    return
+  }
+
+  console.log('分享照片：', selectedImages.value)
+
+  // 顯示 Toast 成功通知
+  toastMessage.value = '照片已成功分享！'
+  toastType.value = 'success'
+  showToast.value = true
+}
+
 function closeToast() {
   showToast.value = false
 }
@@ -292,6 +310,32 @@ onMounted(() => {
             </svg>
             拍貼機列印
           </button>
+
+          <button
+            @click="shareSelectedImages"
+            class="share-button"
+            :class="{ enabled: canPrint }"
+            :disabled="!canPrint"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+            分享
+          </button>
         </div>
       </div>
     </div>
@@ -449,10 +493,12 @@ h1 {
 .print-controls {
   display: flex;
   justify-content: center;
+  gap: 20px; /* 增加按鈕之間的間距 */
   margin-top: 2.5rem;
 }
 
-.print-button {
+.print-button,
+.share-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -465,24 +511,35 @@ h1 {
   font-weight: 600;
   cursor: not-allowed;
   transition: all 0.3s ease;
-  min-width: 220px;
+  min-width: 180px; /* 縮小按鈕寬度以適應兩個按鈕 */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.print-button svg {
+.print-button svg,
+.share-button svg {
   margin-right: 10px;
 }
 
-.print-button.enabled {
+.print-button.enabled,
+.share-button.enabled {
   background: linear-gradient(135deg, var(--color-teal), var(--color-deep-teal));
   cursor: pointer;
   box-shadow: 0 6px 15px rgba(14, 58, 69, 0.25);
 }
 
-.print-button.enabled:hover {
+.print-button.enabled:hover,
+.share-button.enabled:hover {
   background: linear-gradient(135deg, var(--color-orange), #eb9470);
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(225, 123, 79, 0.35);
+}
+
+.share-button.enabled {
+  background: linear-gradient(135deg, var(--color-orange), #eb9470);
+}
+
+.share-button.enabled:hover {
+  background: linear-gradient(135deg, var(--color-teal), var(--color-deep-teal));
 }
 
 .error-message,
@@ -610,6 +667,18 @@ h1 {
 
   .gallery-container {
     padding: 1rem;
+  }
+
+  .print-controls {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .print-button,
+  .share-button {
+    width: 100%;
+    max-width: 320px;
   }
 }
 
