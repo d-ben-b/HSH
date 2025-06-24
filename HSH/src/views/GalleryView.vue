@@ -313,7 +313,7 @@ onMounted(() => {
 
           <button
             @click="shareSelectedImages"
-            class="share-button"
+            class="print-button"
             :class="{ enabled: canPrint }"
             :disabled="!canPrint"
           >
